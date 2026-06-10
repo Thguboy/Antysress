@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Hub | Ultimate Antistress Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #050505;
+            --accent-primary: #00f2ff;
+            --accent-secondary: #7000ff;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-glow: 0 0 10px rgba(0, 242, 255, 0.5);
+            --card-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            --font-main: 'Outfit', sans-serif;
+            --font-title: 'Orbitron', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: white;
+            font-family: var(--font-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+        }
+
+        /* Dashboard Layout */
+        #dashboard {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 10;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+        }
+
+        #dashboard.hidden {
+            transform: scale(1.1);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: var(--font-title);
+            font-size: 3rem;
+            letter-spacing: 4px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            filter: drop-shadow(var(--text-glow));
+        }
+
+        header p {
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 2px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .module-card {
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--card-glow);
+        }
+
+        .module-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+        }
+
+        .module-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .module-card h2 {
+            font-family: var(--font-title);
+            font-size: 1.2rem;
+            color: var(--accent-primary);
+        }
+
+        .module-card p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.4;
+        }
+
+        /* Module Views */
+        .view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-deep);
+            display: none;
+            flex-direction: column;
+            z-index: 20;
+        }
+
+        .view.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .view-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .back-btn {
+            pointer-events: auto;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: var(--font-title);
+            font-size: 0.8rem;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--accent-primary);
+            box-shadow: var(--text-glow);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Control Panel for Modules */
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            padding: 15px 25px;
+            z-index: 100;
+            pointer-events: auto;
+        }
+
+        /* Responsive Fixes */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .grid-container { grid-template-columns: 1fr; }
+            #dashboard { overflow-y: auto; justify-content: flex-start; padding-top: 60px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Dashboard -->
+    <main id="dashboard">
+        <header>
+            <h1>ANTIGRAVITY HUB</h1>
+            <p>CHOOSE YOUR TYPE OF ZEN</p>
+        </header>
+
+        <div class="grid-container">
+            <div class="module-card glass" onclick="app.switchView('fluid')">
+                <div class="icon">🌌</div>
+                <h2>Neon Fluid</h2>
+                <p>Interactive glowing liquid simulation. Drag to create cosmic trails.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('popit')">
+                <div class="icon">🔴</div>
+                <h2>Zen Pop-It</h2>
+                <p>Satisfying ASMR bubble popping with procedural clicks.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('mandala')">
+                <div class="icon">🎨</div>
+                <h2>Endless Mandala</h2>
+                <p>Create symmetrical geometric art with a smooth glowing brush.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('sand')">
+                <div class="icon">🍃</div>
+                <h2>Physics Sand</h2>
+                <p>Relaxing falling sand simulation with gravity and obstacles.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('lofi')">
+                <div class="icon">🎵</div>
+                <h2>Ambient Mixer</h2>
+                <p>Customizable lo-fi soundscapes for deep relaxation.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Views -->
+    <section id="fluid-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+        </div>
+        <canvas id="fluid-canvas"></canvas>
+    </section>
+
+    <section id="popit-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+        </div>
+        <div id="popit-container" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px;">
+            <!-- Popit grid will be injected here -->
+        </div>
+    </section>
+
+    <section id="mandala-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+            <div class="controls glass" style="position: static; transform: none; display: flex; gap: 10px;">
+                <button class="back-btn" onclick="mandalaModule.clear()">CLEAR</button>
+                <button class="back-btn" onclick="mandalaModule.changeSymmetry()">SYMMETRY: <span id="sym-count">8</span></button>
+            </div>
+        </div>
+        <canvas id="mandala-canvas"></canvas>
+    </section>
+
+    <section id="sand-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+            <div class="controls glass" style="position: static; transform: none; display: flex; gap: 10px;">
+                <button class="back-btn" onclick="sandModule.clear()">RESET</button>
+            </div>
+        </div>
+        <canvas id="sand-canvas"></canvas>
+    </section>
+
+    <section id="lofi-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+        </div>
+        <div id="lofi-container" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+            <!-- Lo-fi controls will be injected here -->
+        </div>
+    </section>
+
+    <script>
+        // Core App Logic
+        const app = {
+            activeView: 'dashboard',
+            
+            init() {
+                console.log('Antigravity Hub Initialized');
+                this.bindEvents();
+            },
+
+            bindEvents() {
+                window.addEventListener('resize', () => {
+                    if (this.activeView !== 'dashboard') {
+                        // Notify active module of resize
+                        const module = this.getModule(this.activeView);
+                        if (module && module.resize) module.resize();
+                    }
+                });
+            },
+
+            switchView(viewId) {
+                const dashboard = document.getElementById('dashboard');
+                dashboard.classList.add('hidden');
+                
+                setTimeout(() => {
+                    const views = document.querySelectorAll('.view');
+                    views.forEach(v => v.classList.remove('active'));
+                    
+                    const nextView = document.getElementById(`${viewId}-view`);
+                    nextView.classList.add('active');
+                    this.activeView = viewId;
+                    
+                    // Start module
+                    const module = this.getModule(viewId);
+                    if (module && module.init) module.init();
+                }, 300);
+            },
+
+            backToDashboard() {
+                const currentView = document.getElementById(`${this.activeView}-view`);
+                const dashboard = document.getElementById('dashboard');
+                
+                // Stop active module
+                const module = this.getModule(this.activeView);
+                if (module && module.stop) module.stop();
+
+                currentView.classList.remove('active');
+                dashboard.classList.remove('hidden');
+                this.activeView = 'dashboard';
+            },
+
+            getModule(id) {
+                switch(id) {
+                    case 'fluid': return fluidModule;
+                    case 'popit': return popitModule;
+                    case 'mandala': return mandalaModule;
+                    case 'sand': return sandModule;
+                    case 'lofi': return lofiModule;
+                    default: return null;
+                }
+            }
+        };
+
+        // Module 1: Neon Fluid Sandbox
+        const fluidModule = {
+            canvas: null,
+            ctx: null,
+            params: {
+                SIM_RES: 128,
+                DYE_RESOLUTION: 1024,
+                ITERATIONS: 20,
+                DENSITY_DISSIPATION: 0.97,
+                VELOCITY_DISSIPATION: 0.98,
+                PRESSURE: 0.8,
+                SPLAT_RADIUS: 0.25,
+                CURL: 30
+            },
+            state: {
+                mouseMoved: false,
+                lastMouseX: 0,
+                lastMouseY: 0,
+                color: null
+            },
+            velocity: null, // Grid for velocity
+            density: null,  // Grid for color/density
+            rafId: null,
+
+            init() {
+                this.canvas = document.getElementById('fluid-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                
+                // Initialize grids (simplified simulation for performance)
+                this.initGrids();
+                this.state.color = this.generateColor();
+                
+                this.bindEvents();
+                this.loop();
+            },
+
+            initGrids() {
+                const w = this.params.SIM_RES;
+                const h = Math.round(w * (this.canvas.height / this.canvas.width));
+                this.gridW = w;
+                this.gridH = h;
+                
+                this.velocity = new Float32Array(w * h * 2); // u, v
+                this.density = new Float32Array(w * h * 3);  // r, g, b
+            },
+
+            generateColor() {
+                const h = Math.random() * 360;
+                return { h, s: 100, l: 50 };
+            },
+
+            bindEvents() {
+                const handleMove = (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                    
+                    if (this.state.mouseMoved) {
+                        const dx = x - this.state.lastMouseX;
+                        const dy = y - this.state.lastMouseY;
+                        this.splat(x / this.canvas.width, y / this.canvas.height, dx * 10, dy * 10);
+                    }
+                    
+                    this.state.lastMouseX = x;
+                    this.state.lastMouseY = y;
+                    this.state.mouseMoved = true;
+                };
+
+                this.canvas.onmousemove = handleMove;
+                this.canvas.ontouchmove = (e) => { e.preventDefault(); handleMove(e); };
+            },
+
+            splat(x, y, dx, dy) {
+                const gx = Math.floor(x * this.gridW);
+                const gy = Math.floor(y * this.gridH);
+                const radius = Math.floor(this.params.SPLAT_RADIUS * this.gridW * 0.1);
+
+                for (let i = -radius; i <= radius; i++) {
+                    for (let j = -radius; j <= radius; j++) {
+                        const nx = gx + i;
+                        const ny = gy + j;
+                        if (nx >= 0 && nx < this.gridW && ny >= 0 && ny < this.gridH) {
+                            const d2 = i*i + j*j;
+                            const weight = Math.exp(-d2 / (radius * radius));
+                            const idx = (ny * this.gridW + nx);
+                            
+                            this.velocity[idx * 2] += dx * weight;
+                            this.velocity[idx * 2 + 1] += dy * weight;
+                            
+                            const hue = (this.state.color.h + (performance.now() / 20)) % 360;
+                            const rgb = this.hslToRgb(hue / 360, 1, 0.5);
+                            this.density[idx * 3] += rgb[0] * weight;
+                            this.density[idx * 3 + 1] += rgb[1] * weight;
+                            this.density[idx * 3 + 2] += rgb[2] * weight;
+                        }
+                    }
+                }
+            },
+
+            hslToRgb(h, s, l) {
+                let r, g, b;
+                if (s === 0) r = g = b = l;
+                else {
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+                    r = this.hue2rgb(p, q, h + 1/3);
+                    g = this.hue2rgb(p, q, h);
+                    b = this.hue2rgb(p, q, h - 1/3);
+                }
+                return [r, g, b];
+            },
+
+            hue2rgb(p, q, t) {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            },
+
+            step() {
+                // Advection and Dissipation (Simplified)
+                const nextDensity = new Float32Array(this.density.length);
+                const nextVelocity = new Float32Array(this.velocity.length);
+
+                for (let y = 0; y < this.gridH; y++) {
+                    for (let x = 0; x < this.gridW; x++) {
+                        const idx = y * this.gridW + x;
+                        const vx = this.velocity[idx * 2];
+                        const vy = this.velocity[idx * 2 + 1];
+
+                        // Back-tracing for advection
+                        let px = x - vx * 0.1;
+                        let py = y - vy * 0.1;
+                        px = Math.max(0, Math.min(this.gridW - 1, px));
+                        py = Math.max(0, Math.min(this.gridH - 1, py));
+
+                        const pIdx = Math.floor(py) * this.gridW + Math.floor(px);
+                        
+                        nextDensity[idx * 3] = this.density[pIdx * 3] * this.params.DENSITY_DISSIPATION;
+                        nextDensity[idx * 3 + 1] = this.density[pIdx * 3 + 1] * this.params.DENSITY_DISSIPATION;
+                        nextDensity[idx * 3 + 2] = this.density[pIdx * 3 + 2] * this.params.DENSITY_DISSIPATION;
+                        
+                        nextVelocity[idx * 2] = this.velocity[pIdx * 2] * this.params.VELOCITY_DISSIPATION;
+                        nextVelocity[idx * 2 + 1] = this.velocity[pIdx * 2 + 1] * this.params.VELOCITY_DISSIPATION;
+                    }
+                }
+                this.density = nextDensity;
+                this.velocity = nextVelocity;
+            },
+
+            render() {
+                const imgData = this.ctx.createImageData(this.gridW, this.gridH);
+                for (let i = 0; i < this.gridW * this.gridH; i++) {
+                    imgData.data[i * 4] = this.density[i * 3] * 255;
+                    imgData.data[i * 4 + 1] = this.density[i * 3 + 1] * 255;
+                    imgData.data[i * 4 + 2] = this.density[i * 3 + 2] * 255;
+                    imgData.data[i * 4 + 3] = 255;
+                }
+
+                // Render to small offscreen-like buffer then scale up
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = this.gridW;
+                tempCanvas.height = this.gridH;
+                tempCanvas.getContext('2d').putImageData(imgData, 0, 0);
+
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.globalCompositeOperation = 'screen';
+                this.ctx.filter = 'blur(4px) brightness(1.5)';
+                this.ctx.drawImage(tempCanvas, 0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.filter = 'none';
+                this.ctx.drawImage(tempCanvas, 0, 0, this.canvas.width, this.canvas.height);
+            },
+
+            loop() {
+                this.step();
+                this.render();
+                this.rafId = requestAnimationFrame(() => this.loop());
+            },
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.initGrids();
+            },
+
+            stop() {
+                cancelAnimationFrame(this.rafId);
+                this.canvas.onmousemove = null;
+                this.canvas.ontouchmove = null;
+            }
+        };
+        // Module 2: Zen Pop-It
+        const popitModule = {
+            container: null,
+            audioCtx: null,
+            colors: ['#ff3e3e', '#ff9e3e', '#ffff3e', '#3eff3e', '#3e9eff', '#9e3eff'],
+            
+            init() {
+                this.container = document.getElementById('popit-container');
+                this.renderGrid();
+                if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+
+            renderGrid() {
+                this.container.innerHTML = '';
+                const grid = document.createElement('div');
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
+                grid.style.gap = '15px';
+                grid.style.maxWidth = '500px';
+                grid.style.width = '100%';
+                
+                for (let i = 0; i < 36; i++) {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'glass';
+                    bubble.style.aspectRatio = '1';
+                    bubble.style.borderRadius = '50%';
+                    bubble.style.cursor = 'pointer';
+                    bubble.style.boxShadow = 'inset 0 4px 8px rgba(255,255,255,0.2), 0 8px 16px rgba(0,0,0,0.4)';
+                    bubble.style.background = `radial-gradient(circle at 30% 30%, ${this.colors[Math.floor(i/6)]}, rgba(0,0,0,0.5))`;
+                    bubble.style.transition = 'all 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    
+                    bubble.onclick = (e) => this.pop(e.target);
+                    bubble.onmousedown = () => bubble.style.transform = 'scale(0.9)';
+                    
+                    grid.appendChild(bubble);
+                }
+                this.container.appendChild(grid);
+            },
+
+            pop(el) {
+                if (el.dataset.popped === 'true') {
+                    el.style.transform = 'scale(1)';
+                    el.style.boxShadow = 'inset 0 4px 8px rgba(255,255,255,0.2), 0 8px 16px rgba(0,0,0,0.4)';
+                    el.dataset.popped = 'false';
+                    this.playPopSound(440); // Higher pitch for reset
+                } else {
+                    el.style.transform = 'scale(0.85)';
+                    el.style.boxShadow = 'inset 0 -4px 8px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2)';
+                    el.dataset.popped = 'true';
+                    this.playPopSound(220); // Deeper pitch for pop
+                }
+                
+                // Visual feedback
+                el.classList.add('popped-anim');
+                setTimeout(() => el.classList.remove('popped-anim'), 200);
+            },
+
+            playPopSound(freq) {
+                if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freq * 0.1, this.audioCtx.currentTime + 0.1);
+                
+                gain.gain.setValueAtTime(0.3, this.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.1);
+                
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                
+                osc.start();
+                osc.stop(this.audioCtx.currentTime + 0.1);
+            },
+
+            stop() {
+                // No specific cleanup needed for popit
+            }
+        };
+        // Module 3: Endless Mandalas
+        const mandalaModule = {
+            canvas: null,
+            ctx: null,
+            isDrawing: false,
+            symmetry: 8,
+            color: 0,
+            lastX: 0,
+            lastY: 0,
+
+            init() {
+                this.canvas = document.getElementById('mandala-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                this.ctx.lineJoin = 'round';
+                this.ctx.lineCap = 'round';
+                this.bindEvents();
+                this.updateUI();
+            },
+
+            bindEvents() {
+                const start = (e) => {
+                    this.isDrawing = true;
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.lastX = (e.clientX || e.touches[0].clientX) - rect.left;
+                    this.lastY = (e.clientY || e.touches[0].clientY) - rect.top;
+                };
+
+                const move = (e) => {
+                    if (!this.isDrawing) return;
+                    const rect = this.canvas.getBoundingClientRect();
+                    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                    this.draw(x, y);
+                    this.lastX = x;
+                    this.lastY = y;
+                };
+
+                const stop = () => this.isDrawing = false;
+
+                this.canvas.onmousedown = start;
+                this.canvas.onmousemove = move;
+                this.canvas.onmouseup = stop;
+                this.canvas.onmouseleave = stop;
+
+                this.canvas.ontouchstart = (e) => { e.preventDefault(); start(e); };
+                this.canvas.ontouchmove = (e) => { e.preventDefault(); move(e); };
+                this.canvas.ontouchend = stop;
+            },
+
+            draw(x, y) {
+                const cx = this.canvas.width / 2;
+                const cy = this.canvas.height / 2;
+                
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeStyle = `hsl(${this.color}, 100%, 60%)`;
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = `hsl(${this.color}, 100%, 60%)`;
+
+                for (let i = 0; i < this.symmetry; i++) {
+                    const angle = (Math.PI * 2 / this.symmetry) * i;
+                    
+                    this.ctx.save();
+                    this.ctx.translate(cx, cy);
+                    this.ctx.rotate(angle);
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.lastX - cx, this.lastY - cy);
+                    this.ctx.lineTo(x - cx, y - cy);
+                    this.ctx.stroke();
+
+                    // Optional mirror side for even more complex mandalas
+                    this.ctx.scale(1, -1);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.lastX - cx, this.lastY - cy);
+                    this.ctx.lineTo(x - cx, y - cy);
+                    this.ctx.stroke();
+
+                    this.ctx.restore();
+                }
+                
+                this.color = (this.color + 1) % 360;
+            },
+
+            clear() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            },
+
+            changeSymmetry() {
+                const options = [4, 6, 8, 12, 16, 24];
+                let idx = options.indexOf(this.symmetry);
+                this.symmetry = options[(idx + 1) % options.length];
+                this.updateUI();
+            },
+
+            updateUI() {
+                const el = document.getElementById('sym-count');
+                if (el) el.innerText = this.symmetry;
+            },
+
+            resize() {
+                const temp = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.ctx.putImageData(temp, 0, 0);
+            },
+
+            stop() {
+                this.canvas.onmousedown = null;
+                this.canvas.onmousemove = null;
+                this.canvas.onmouseup = null;
+            }
+        };
+        // Module 4: Gravity & Physics Sand
+        const sandModule = {
+            canvas: null,
+            ctx: null,
+            width: 200, // Simulation resolution
+            height: 0,
+            grid: null,
+            rafId: null,
+            isDrawing: false,
+            colors: {
+                0: '#050505', // Empty
+                1: '#ffcc33', // Sand
+                2: '#3399ff', // Water
+                3: '#888888'  // Wall
+            },
+
+            init() {
+                this.canvas = document.getElementById('sand-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.height = Math.round(this.width * (window.innerHeight / window.innerWidth));
+                this.grid = new Uint8Array(this.width * this.height);
+                this.resize();
+                this.bindEvents();
+                this.loop();
+            },
+
+            bindEvents() {
+                const handleInput = (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const rx = (e.clientX || e.touches?.[0].clientX) - rect.left;
+                    const ry = (e.clientY || e.touches?.[0].clientY) - rect.top;
+                    const x = Math.floor((rx / this.canvas.width) * this.width);
+                    const y = Math.floor((ry / this.canvas.height) * this.height);
+                    
+                    if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+                        this.setCircle(x, y, 3, 1); // Drop sand
+                    }
+                };
+
+                this.canvas.onmousedown = () => this.isDrawing = true;
+                this.canvas.onmouseup = () => this.isDrawing = false;
+                this.canvas.onmousemove = (e) => { if (this.isDrawing) handleInput(e); };
+
+                this.canvas.ontouchstart = (e) => { e.preventDefault(); this.isDrawing = true; handleInput(e); };
+                this.canvas.ontouchmove = (e) => { e.preventDefault(); handleInput(e); };
+                this.canvas.ontouchend = () => this.isDrawing = false;
+            },
+
+            setCircle(cx, cy, radius, type) {
+                for (let y = -radius; y <= radius; y++) {
+                    for (let x = -radius; x <= radius; x++) {
+                        if (x*x + y*y <= radius*radius) {
+                            const nx = cx + x;
+                            const ny = cy + y;
+                            if (nx >= 0 && nx < this.width && ny >= 0 && ny < this.height) {
+                                if (this.grid[ny * this.width + nx] === 0) {
+                                    this.grid[ny * this.width + nx] = type;
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+
+            update() {
+                const newGrid = new Uint8Array(this.grid);
+                
+                // Update from bottom to top to avoid double stepping
+                for (let y = this.height - 2; y >= 0; y--) {
+                    for (let x = 0; x < this.width; x++) {
+                        const idx = y * this.width + x;
+                        const type = this.grid[idx];
+                        
+                        if (type === 1) { // Sand logic
+                            const below = (y + 1) * this.width + x;
+                            const belowL = (y + 1) * this.width + (x - 1);
+                            const belowR = (y + 1) * this.width + (x + 1);
+
+                            if (this.grid[below] === 0) {
+                                newGrid[below] = 1;
+                                newGrid[idx] = 0;
+                            } else if (x > 0 && this.grid[belowL] === 0) {
+                                newGrid[belowL] = 1;
+                                newGrid[idx] = 0;
+                            } else if (x < this.width - 1 && this.grid[belowR] === 0) {
+                                newGrid[belowR] = 1;
+                                newGrid[idx] = 0;
+                            }
+                        }
+                    }
+                }
+                this.grid = newGrid;
+            },
+
+            render() {
+                const imgData = this.ctx.createImageData(this.width, this.height);
+                for (let i = 0; i < this.grid.length; i++) {
+                    const type = this.grid[i];
+                    const color = this.hexToRgb(this.colors[type]);
+                    imgData.data[i * 4] = color.r;
+                    imgData.data[i * 4 + 1] = color.g;
+                    imgData.data[i * 4 + 2] = color.b;
+                    imgData.data[i * 4 + 3] = type === 0 ? 0 : 255;
+                }
+
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = this.width;
+                tempCanvas.height = this.height;
+                tempCanvas.getContext('2d').putImageData(imgData, 0, 0);
+
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.imageSmoothingEnabled = false;
+                this.ctx.drawImage(tempCanvas, 0, 0, this.canvas.width, this.canvas.height);
+            },
+
+            hexToRgb(hex) {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : { r: 0, g: 0, b: 0 };
+            },
+
+            loop() {
+                this.update();
+                this.render();
+                this.rafId = requestAnimationFrame(() => this.loop());
+            },
+
+            clear() {
+                this.grid.fill(0);
+            },
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+
+            stop() {
+                cancelAnimationFrame(this.rafId);
+                this.canvas.onmousedown = null;
+                this.canvas.onmouseup = null;
+                this.canvas.onmousemove = null;
+            }
+        };
+        // Module 5: Lo-Fi Ambient Sound Mixer
+        const lofiModule = {
+            container: null,
+            audioCtx: null,
+            nodes: {}, // Stores gain nodes for each sound
+            sounds: [
+                { id: 'rain', label: '🌧️ Heavy Rain', type: 'brown' },
+                { id: 'wind', label: '🍃 Soft Wind', type: 'pink' },
+                { id: 'static', label: '📺 TV Static', type: 'white' },
+                { id: 'waves', label: '🌊 Ocean Waves', type: 'sine-mod' }
+            ],
+
+            init() {
+                this.container = document.getElementById('lofi-container');
+                if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                this.renderUI();
+                this.setupAudio();
+            },
+
+            setupAudio() {
+                this.sounds.forEach(sound => {
+                    const gainNode = this.audioCtx.createGain();
+                    gainNode.gain.value = 0;
+                    gainNode.connect(this.audioCtx.destination);
+                    this.nodes[sound.id] = gainNode;
+
+                    // Generate noise buffer
+                    const bufferSize = 2 * this.audioCtx.sampleRate;
+                    const noiseBuffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+
+                    let lastOut = 0.0; // For brown noise
+                    for (let i = 0; i < bufferSize; i++) {
+                        if (sound.type === 'white') {
+                            output[i] = Math.random() * 2 - 1;
+                        } else if (sound.type === 'brown') {
+                            let white = Math.random() * 2 - 1;
+                            output[i] = (lastOut + (0.02 * white)) / 1.02;
+                            lastOut = output[i];
+                            output[i] *= 3.5; // compensation
+                        } else if (sound.type === 'pink') {
+                            // Simple pink noise approximation
+                            output[i] = (Math.random() * 2 - 1) * 0.5;
+                        }
+                    }
+
+                    const source = this.audioCtx.createBufferSource();
+                    source.buffer = noiseBuffer;
+                    source.loop = true;
+                    
+                    // Low pass for rain/wind
+                    const filter = this.audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = sound.id === 'rain' ? 800 : 1500;
+                    
+                    source.connect(filter);
+                    filter.connect(gainNode);
+                    source.start();
+                });
+            },
+
+            renderUI() {
+                this.container.innerHTML = '';
+                const panel = document.createElement('div');
+                panel.className = 'glass';
+                panel.style.padding = '40px';
+                panel.style.maxWidth = '600px';
+                panel.style.width = '100%';
+                panel.style.display = 'flex';
+                panel.style.flexDirection = 'column';
+                panel.style.gap = '25px';
+
+                this.sounds.forEach(sound => {
+                    const row = document.createElement('div');
+                    row.style.display = 'flex';
+                    row.style.alignItems = 'center';
+                    row.style.gap = '20px';
+
+                    const label = document.createElement('span');
+                    label.innerText = sound.label;
+                    label.style.width = '120px';
+                    label.style.fontFamily = 'var(--font-title)';
+                    label.style.fontSize = '0.8rem';
+
+                    const slider = document.createElement('input');
+                    slider.type = 'range';
+                    slider.min = '0';
+                    slider.max = '1';
+                    slider.step = '0.01';
+                    slider.value = '0';
+                    slider.style.flex = '1';
+                    slider.style.accentColor = 'var(--accent-primary)';
+                    
+                    slider.oninput = (e) => {
+                        if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                        const val = parseFloat(e.target.value);
+                        this.nodes[sound.id].gain.setTargetAtTime(val * 0.5, this.audioCtx.currentTime, 0.1);
+                    };
+
+                    row.appendChild(label);
+                    row.appendChild(slider);
+                    panel.appendChild(row);
+                });
+
+                this.container.appendChild(panel);
+            },
+
+            stop() {
+                // Pause instead of stop to keep nodes ready
+                Object.values(this.nodes).forEach(node => {
+                    node.gain.setTargetAtTime(0, this.audioCtx.currentTime, 0.5);
+                });
+            }
+        };
+
+        window.onload = () => app.init();
+    </script>
+</body>
+</html>
