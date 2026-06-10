@@ -210,9 +210,92 @@
         /* Responsive Fixes */
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
-            .grid-container { grid-template-columns: 1fr; }
-            #dashboard { overflow-y: auto; justify-content: flex-start; padding-top: 60px; }
+            .grid-container { 
+                grid-template-columns: 1fr; 
+                padding-bottom: 100px;
+            }
+            #dashboard { 
+                overflow-y: auto; 
+                justify-content: flex-start; 
+                padding-top: 60px; 
+            }
         }
+
+        /* Custom Module Styles */
+        #bubble-wrap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .bubble {
+            aspect-ratio: 1;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.1s;
+        }
+        .bubble.popped {
+            background: rgba(255,255,255,0.02);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+        }
+
+        /* 2048 Styles */
+        #game-2048 {
+            width: 320px;
+            height: 320px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            position: relative;
+        }
+        .tile {
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: transform 0.1s, background 0.1s;
+        }
+
+        /* Sudoku Styles */
+        #sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 1px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid var(--accent-primary);
+            max-width: 450px;
+            width: 100%;
+        }
+        .sudoku-cell {
+            aspect-ratio: 1;
+            background: var(--bg-deep);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .sudoku-cell.fixed { color: var(--accent-primary); font-weight: bold; }
+        .sudoku-cell:nth-child(3n) { border-right: 2px solid var(--accent-primary); }
+        .sudoku-cell:nth-child(9n) { border-right: none; }
+        .sudoku-grid > div:nth-child(n+19):nth-child(-n+27),
+        .sudoku-grid > div:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--accent-primary); }
+
     </style>
 </head>
 <body>
@@ -249,6 +332,36 @@
                 <div class="icon">🎵</div>
                 <h2>Ambient Mixer</h2>
                 <p>Customizable lo-fi soundscapes for deep relaxation.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('bubble')">
+                <div class="icon">🫧</div>
+                <h2>Bubble Wrap</h2>
+                <p>Infinite layers of satisfying bubble wrap. Pop away!</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('p2048')">
+                <div class="icon">🔢</div>
+                <h2>2048 Zen</h2>
+                <p>The classic addictive puzzle in a neon minimal style.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('sudoku')">
+                <div class="icon">🧩</div>
+                <h2>Zen Sudoku</h2>
+                <p>Train your mind with procedural Sudoku puzzles.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('maze')">
+                <div class="icon">🌀</div>
+                <h2>Marble Maze</h2>
+                <p>Tilt and roll through endless procedural mazes.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('zengarden')">
+                <div class="icon">🪨</div>
+                <h2>Zen Garden</h2>
+                <p>Rake smooth patterns in silver sand with stones.</p>
+            </div>
+            <div class="module-card glass" onclick="app.switchView('flow')">
+                <div class="icon">🌈</div>
+                <h2>Color Flow</h2>
+                <p>Connect the dots without crossing lines.</p>
             </div>
         </div>
     </main>
@@ -298,6 +411,63 @@
         <div id="lofi-container" style="flex: 1; display: flex; align-items: center; justify-content: center;">
             <!-- Lo-fi controls will be injected here -->
         </div>
+    </section>
+
+    <!-- NEW VIEWS -->
+    <section id="bubble-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+            <button class="back-btn" onclick="bubbleModule.reset()">RESET</button>
+        </div>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center; padding: 20px; overflow-y: auto;">
+            <div id="bubble-wrap-grid"></div>
+        </div>
+    </section>
+
+    <section id="p2048-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+            <button class="back-btn" onclick="p2048Module.init()">NEW GAME</button>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 20px;">
+            <div id="score-2048" class="glass" style="padding: 10px 20px; font-family: var(--font-title);">SCORE: 0</div>
+            <div id="game-2048"></div>
+            <p style="color: rgba(255,255,255,0.5);">Use Arrow Keys or Swipe to Move</p>
+        </div>
+    </section>
+
+    <section id="sudoku-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+            <button class="back-btn" onclick="sudokuModule.generate()">NEW PUZZLE</button>
+        </div>
+        <div style="flex:1; display:flex; align-items:center; justify-content:center;">
+            <div id="sudoku-grid"></div>
+        </div>
+    </section>
+
+    <section id="maze-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+            <button class="back-btn" onclick="mazeModule.init()">NEW MAZE</button>
+        </div>
+        <canvas id="maze-canvas"></canvas>
+    </section>
+
+    <section id="zengarden-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+            <button class="back-btn" onclick="zenGardenModule.clear()">RESET</button>
+        </div>
+        <canvas id="zengarden-canvas"></canvas>
+    </section>
+
+    <section id="flow-view" class="view">
+        <div class="view-header">
+            <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
+            <button class="back-btn" onclick="flowModule.init()">RESET</button>
+        </div>
+        <canvas id="flow-canvas"></canvas>
     </section>
 
     <script>
@@ -358,6 +528,12 @@
                     case 'mandala': return mandalaModule;
                     case 'sand': return sandModule;
                     case 'lofi': return lofiModule;
+                    case 'bubble': return bubbleModule;
+                    case 'p2048': return p2048Module;
+                    case 'sudoku': return sudokuModule;
+                    case 'maze': return mazeModule;
+                    case 'zengarden': return zenGardenModule;
+                    case 'flow': return flowModule;
                     default: return null;
                 }
             }
@@ -1005,11 +1181,279 @@
             },
 
             stop() {
-                // Pause instead of stop to keep nodes ready
                 Object.values(this.nodes).forEach(node => {
                     node.gain.setTargetAtTime(0, this.audioCtx.currentTime, 0.5);
                 });
             }
+        };
+
+
+        // Module 6: Bubble Wrap
+        const bubbleModule = {
+            grid: null,
+            init() {
+                this.grid = document.getElementById('bubble-wrap-grid');
+                if (this.grid.children.length === 0) this.reset();
+            },
+            reset() {
+                this.grid.innerHTML = '';
+                const count = 100;
+                for (let i = 0; i < count; i++) {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'bubble';
+                    bubble.onclick = (e) => this.pop(e.target);
+                    bubble.ontouchstart = (e) => { e.preventDefault(); this.pop(e.target); };
+                    this.grid.appendChild(bubble);
+                }
+            },
+            pop(el) {
+                if (el.classList.contains('popped')) return;
+                el.classList.add('popped');
+                popitModule.playPopSound(600 + Math.random() * 400); 
+                el.style.transform = 'scale(0.9)';
+            },
+            stop() {}
+        };
+
+        // Module 7: 2048 Zen
+        const p2048Module = {
+            grid: [], score: 0, size: 4, container: null, scoreEl: null,
+            init() {
+                this.container = document.getElementById('game-2048');
+                this.scoreEl = document.getElementById('score-2048');
+                this.score = 0;
+                this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
+                this.addTile(); this.addTile();
+                this.render(); this.bindEvents();
+            },
+            bindEvents() {
+                window.onkeydown = (e) => {
+                    if (app.activeView !== 'p2048') return;
+                    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                        e.preventDefault(); this.move(e.key);
+                    }
+                };
+            },
+            addTile() {
+                const empty = [];
+                for(let r=0; r<this.size; r++) for(let c=0; c<this.size; c++) if(this.grid[r][c] === 0) empty.push({r,c});
+                if(empty.length) {
+                    const {r, c} = empty[Math.floor(Math.random() * empty.length)];
+                    this.grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+                }
+            },
+            render() {
+                this.container.innerHTML = '';
+                this.scoreEl.innerText = `SCORE: ${this.score}`;
+                for(let r=0; r<this.size; r++) {
+                    for(let c=0; c<this.size; c++) {
+                        const tile = document.createElement('div');
+                        tile.className = 'tile glass';
+                        const val = this.grid[r][c];
+                        if(val > 0) {
+                            tile.innerText = val;
+                            tile.style.background = `rgba(0, 242, 255, ${Math.min(0.8, val/2048)})`;
+                        }
+                        this.container.appendChild(tile);
+                    }
+                }
+            },
+            move(dir) {
+                let moved = false;
+                const rotate = (grid) => grid[0].map((_, i) => grid.map(row => row[i]).reverse());
+                let tempGrid = JSON.parse(JSON.stringify(this.grid));
+                let rotations = 0;
+                if(dir === 'ArrowUp') rotations = 1;
+                else if(dir === 'ArrowRight') rotations = 2;
+                else if(dir === 'ArrowDown') rotations = 3;
+                for(let i=0; i<rotations; i++) tempGrid = rotate(tempGrid);
+                for(let r=0; r<this.size; r++) {
+                    let row = tempGrid[r].filter(v => v !== 0);
+                    for(let i=0; i<row.length-1; i++) {
+                        if(row[i] === row[i+1]) { row[i] *= 2; this.score += row[i]; row.splice(i+1, 1); moved = true; }
+                    }
+                    while(row.length < this.size) row.push(0);
+                    if(JSON.stringify(tempGrid[r]) !== JSON.stringify(row)) moved = true;
+                    tempGrid[r] = row;
+                }
+                for(let i=0; i<(4-rotations)%4; i++) tempGrid = rotate(tempGrid);
+                if(moved) { this.grid = tempGrid; this.addTile(); this.render(); }
+            },
+            stop() { window.onkeydown = null; }
+        };
+
+        // Module 8: Sudoku Zen
+        const sudokuModule = {
+            grid: [], solution: [], container: null,
+            init() { this.container = document.getElementById('sudoku-grid'); this.generate(); },
+            generate() {
+                this.grid = Array(81).fill(0);
+                this.fillGrid();
+                this.solution = [...this.grid];
+                this.removeNumbers();
+                this.render();
+            },
+            fillGrid() {
+                const solve = () => {
+                    for(let i=0; i<81; i++) {
+                        if(this.grid[i] === 0) {
+                            const nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+                            for(let n of nums) {
+                                if(this.isValid(i, n)) {
+                                    this.grid[i] = n;
+                                    if(solve()) return true;
+                                    this.grid[i] = 0;
+                                }
+                            }
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+                solve();
+            },
+            isValid(idx, n) {
+                const r = Math.floor(idx/9), c = idx%9;
+                for(let i=0; i<9; i++) {
+                    if(this.grid[r*9 + i] === n || this.grid[i*9 + c] === n) return false;
+                }
+                const br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+                for(let i=0; i<3; i++) for(let j=0; j<3; j++) if(this.grid[(br+i)*9 + (bc+j)] === n) return false;
+                return true;
+            },
+            removeNumbers() {
+                let attempts = 40;
+                while(attempts > 0) {
+                    let i = Math.floor(Math.random() * 81);
+                    if(this.grid[i] !== 0) { this.grid[i] = 0; attempts--; }
+                }
+            },
+            render() {
+                this.container.innerHTML = '';
+                this.grid.forEach((n, i) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'sudoku-cell glass';
+                    if(n !== 0) { cell.innerText = n; cell.classList.add('fixed'); }
+                    else { cell.onclick = () => this.input(i, cell); }
+                    this.container.appendChild(cell);
+                });
+            },
+            input(idx, el) {
+                let n = (parseInt(el.innerText) || 0) + 1;
+                if(n > 9) n = 0; el.innerText = n === 0 ? '' : n;
+                this.grid[idx] = n;
+            },
+            stop() {}
+        };
+
+        // Module 9: Marble Maze
+        const mazeModule = {
+            canvas: null, ctx: null, ball: {x: 20, y: 20, vx: 0, vy: 0}, walls: [], rafId: null,
+            init() {
+                this.canvas = document.getElementById('maze-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.generateMaze();
+                this.bindEvents();
+                this.loop();
+            },
+            generateMaze() {
+                this.walls = [];
+                for(let i=0; i<15; i++) {
+                    this.walls.push({
+                        x: Math.random() * (this.canvas.width - 100) + 50,
+                        y: Math.random() * (this.canvas.height - 100) + 50,
+                        w: Math.random() * 200 + 20,
+                        h: 20
+                    });
+                }
+            },
+            bindEvents() {
+                window.onmousemove = (e) => {
+                    const dx = (e.clientX - this.canvas.width/2) / 500;
+                    const dy = (e.clientY - this.canvas.height/2) / 500;
+                    this.ball.vx += dx;
+                    this.ball.vy += dy;
+                };
+            },
+            loop() {
+                this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
+                this.ball.x += this.ball.vx;
+                this.ball.y += this.ball.vy;
+                this.ball.vx *= 0.98;
+                this.ball.vy *= 0.98;
+
+                // Wall collisions
+                this.walls.forEach(w => {
+                    if(this.ball.x > w.x && this.ball.x < w.x + w.w && this.ball.y > w.y && this.ball.y < w.y + w.h) {
+                        this.ball.vx *= -0.5; this.ball.vy *= -0.5;
+                    }
+                    this.ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    this.ctx.fillRect(w.x, w.y, w.w, w.h);
+                });
+
+                // Ball
+                this.ctx.beginPath();
+                this.ctx.arc(this.ball.x, this.ball.y, 10, 0, Math.PI*2);
+                this.ctx.fillStyle = 'var(--accent-primary)';
+                this.ctx.fill();
+                this.rafId = requestAnimationFrame(() => this.loop());
+            },
+            stop() { cancelAnimationFrame(this.rafId); window.onmousemove = null; }
+        };
+
+        // Module 10: Zen Garden
+        const zenGardenModule = {
+            canvas: null, ctx: null, rake: {x:0, y:0, active: false},
+            init() {
+                this.canvas = document.getElementById('zengarden-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.ctx.fillStyle = '#c0c0c0';
+                this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height);
+                this.bindEvents();
+            },
+            bindEvents() {
+                const move = (e) => {
+                    if(!this.rake.active) return;
+                    const x = e.clientX || e.touches?.[0].clientX;
+                    const y = e.clientY || e.touches?.[0].clientY;
+                    this.ctx.beginPath();
+                    this.ctx.lineWidth = 15;
+                    this.ctx.lineCap = 'round';
+                    this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                    this.ctx.moveTo(this.rake.x, this.rake.y);
+                    this.ctx.lineTo(x, y);
+                    this.ctx.stroke();
+                    this.rake.x = x; this.rake.y = y;
+                };
+                this.canvas.onmousedown = (e) => { this.rake.active = true; this.rake.x = e.clientX; this.rake.y = e.clientY; };
+                this.canvas.onmouseup = () => this.rake.active = false;
+                this.canvas.onmousemove = move;
+            },
+            clear() { this.ctx.fillStyle = '#c0c0c0'; this.ctx.fillRect(0,0,this.canvas.width, this.canvas.height); },
+            stop() {}
+        };
+
+        // Module 11: Color Flow
+        const flowModule = {
+            canvas: null, ctx: null,
+            init() {
+                this.canvas = document.getElementById('flow-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.renderPlaceholder();
+            },
+            renderPlaceholder() {
+                this.ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                this.ctx.textAlign = 'center';
+                this.ctx.font = '20px var(--font-title)';
+                this.ctx.fillText('COLOR FLOW PUZZLE COMING SOON', this.canvas.width/2, this.canvas.height/2);
+            },
+            stop() {}
         };
 
         window.onload = () => app.init();
