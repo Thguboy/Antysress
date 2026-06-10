@@ -483,20 +483,26 @@
     <section id="kinesis-view" class="view">
         <div class="view-header">
             <button class="back-btn" onclick="app.backToDashboard()">← DASHBOARD</button>
-            <div class="controls glass" style="position: static; transform: none; display: flex; gap: 10px;">
+            <div class="controls glass" style="position: static; transform: none; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                 <button class="back-btn" onclick="kinesisModule.setMode('particles')">PARTICLES</button>
                 <button class="back-btn" onclick="kinesisModule.setMode('draw')">AIR DRAW</button>
                 <button class="back-btn" onclick="kinesisModule.setMode('3d')">AR 3D</button>
                 <button class="back-btn" onclick="kinesisModule.clear()">CLEAR</button>
             </div>
         </div>
-        <!-- Video for logic (hidden) -->
+        
+        <!-- Selection Menu for 3D Objects -->
+        <div id="kinesis-selector" class="glass" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: none; gap: 10px; padding: 10px; z-index: 100; overflow-x: auto; max-width: 90vw;">
+            <button class="back-btn" onclick="kinesisModule.spawn('sphere')">BALL</button>
+            <button class="back-btn" onclick="kinesisModule.spawn('crystal')">CRYSTAL</button>
+            <button class="back-btn" onclick="kinesisModule.spawn('insect')">INSECT</button>
+            <button class="back-btn" onclick="kinesisModule.spawn('nebula')">NEBULA</button>
+            <button class="back-btn" onclick="kinesisModule.spawn('spirit')">SPIRIT</button>
+        </div>
+
         <video id="kinesis-video" style="display: none;" playsinline></video>
-        <!-- Actual Video Background -->
         <canvas id="kinesis-video-canvas" style="position: absolute; top:0; left:0; z-index: 1; transform: scaleX(-1);"></canvas>
-        <!-- AI/Skeleton Overlay -->
         <canvas id="kinesis-canvas" style="position: absolute; top:0; left:0; z-index: 5; transform: scaleX(-1);"></canvas>
-        <!-- Three.js Overlay -->
         <div id="kinesis-3d-container" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index: 10; pointer-events: none;"></div>
         
         <div id="loading-ai" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: var(--font-title); color: var(--accent-primary); z-index: 50;">LOADING AI...</div>
@@ -1489,12 +1495,16 @@
             stop() {}
         };
 
-        // Module 12: Kinesis AI (AR/3D UPGRADE)
+        // Module 12: Kinesis AI (ADVANCED MULTI-HAND)
         const kinesisModule = {
             canvas: null, ctx: null, vCanvas: null, vCtx: null, video: null, hands: null, camera: null,
             scene: null, threeCamera: null, renderer: null, objects: [], 
             particles: [], mode: '3d', lastPoint: null, drawing: [],
-            initialized: false, grabbing: false, grabbedObj: null,
+            initialized: false,
+            handStates: [
+                { grabbing: false, grabbedObj: null, lastX: 0, lastY: 0 },
+                { grabbing: false, grabbedObj: null, lastX: 0, lastY: 0 }
+            ],
             
             async init() {
                 this.canvas = document.getElementById('kinesis-canvas');
@@ -1514,43 +1524,58 @@
                 }
                 
                 if (this.particles.length === 0) this.initParticles();
+                this.setMode(this.mode);
             },
 
             initThree() {
                 const container = document.getElementById('kinesis-3d-container');
                 this.scene = new THREE.Scene();
                 this.threeCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                this.renderer = new THREE.WebGLRenderer({ alpha: true });
+                this.renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
                 this.renderer.setSize(window.innerWidth, window.innerHeight);
                 container.appendChild(this.renderer.domElement);
                 
-                const light = new THREE.PointLight(0x00f2ff, 10, 100);
-                light.position.set(10, 10, 10);
+                this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+                const light = new THREE.PointLight(0xffffff, 1);
+                light.position.set(5, 5, 5);
                 this.scene.add(light);
-                this.scene.add(new THREE.AmbientLight(0x404040));
-                
-                // Create 5 objects
-                const geoms = [
-                    new THREE.SphereGeometry(1, 32, 32), // Ball
-                    new THREE.ConeGeometry(0.5, 1.5, 32),  // "Insect"
-                    new THREE.BoxGeometry(1, 1.5, 1),    // "Avatar"
-                    new THREE.OctahedronGeometry(1),      // "Gem"
-                    new THREE.TorusGeometry(0.8, 0.2, 16, 100) // "Ring"
-                ];
-                
-                geoms.forEach((g, i) => {
-                    const mat = new THREE.MeshPhongMaterial({ 
-                        color: new THREE.Color(`hsl(${i * 72}, 100%, 50%)`),
-                        emissive: new THREE.Color(`hsl(${i * 72}, 100%, 20%)`),
-                        shininess: 100
-                    });
-                    const mesh = new THREE.Mesh(g, mat);
-                    mesh.position.set((i - 2) * 3, 0, -5);
-                    this.scene.add(mesh);
-                    this.objects.push(mesh);
-                });
                 
                 this.threeCamera.position.z = 5;
+                this.animate();
+            },
+
+            spawn(type) {
+                let geometry, material;
+                const color = new THREE.Color(`hsl(${Math.random() * 360}, 100%, 50%)`);
+                
+                switch(type) {
+                    case 'sphere':
+                        geometry = new THREE.SphereGeometry(1, 32, 32);
+                        material = new THREE.MeshStandardMaterial({ color, roughness: 0.1, metalness: 0.8 });
+                        break;
+                    case 'crystal':
+                        geometry = new THREE.IcosahedronGeometry(1, 0);
+                        material = new THREE.MeshStandardMaterial({ color, wireframe: false, flatShading: true });
+                        break;
+                    case 'insect':
+                        geometry = new THREE.ConeGeometry(0.4, 1.2, 32);
+                        material = new THREE.MeshPhongMaterial({ color, shininess: 100 });
+                        break;
+                    case 'nebula':
+                        geometry = new THREE.TorusKnotGeometry(0.7, 0.3, 100, 16);
+                        material = new THREE.MeshPhysicalMaterial({ color, transmission: 0.5, thickness: 1 });
+                        break;
+                    case 'spirit':
+                        geometry = new THREE.OctahedronGeometry(0.8, 2);
+                        material = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 2 });
+                        break;
+                }
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, -2);
+                mesh.userData.type = type;
+                this.scene.add(mesh);
+                this.objects.push(mesh);
             },
 
             async initAI() {
@@ -1559,7 +1584,7 @@
                 });
 
                 this.hands.setOptions({
-                    maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5
+                    maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7
                 });
 
                 this.hands.onResults((results) => this.onResults(results));
@@ -1572,51 +1597,43 @@
             },
 
             onResults(results) {
-                // 1. Render Video Background
-                this.vCtx.save();
                 this.vCtx.clearRect(0,0,this.vCanvas.width, this.vCanvas.height);
                 this.vCtx.drawImage(results.image, 0,0, this.vCanvas.width, this.vCanvas.height);
-                this.vCtx.restore();
 
-                // 2. Render Overlay (Skeleton/Particles/Draw)
                 this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
                 
-                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                    const landmarks = results.multiHandLandmarks[0];
-                    this.drawSkeleton(landmarks);
-                    
-                    const tip = landmarks[8]; // Index tip
-                    const thumb = landmarks[4]; // Thumb tip
-                    const hx = tip.x * this.canvas.width; 
-                    const hy = tip.y * this.canvas.height;
-                    
-                    // Grabbing Logic (Thumb and Index close)
-                    const dist = Math.hypot(tip.x - thumb.x, tip.y - thumb.y);
-                    this.grabbing = dist < 0.05;
+                if (results.multiHandLandmarks) {
+                    results.multiHandLandmarks.forEach((landmarks, index) => {
+                        this.drawSkeleton(landmarks, index);
+                        
+                        const tip = landmarks[8];
+                        const thumb = landmarks[4];
+                        const hx = tip.x * this.canvas.width;
+                        const hy = tip.y * this.canvas.height;
+                        
+                        const state = this.handStates[index];
+                        const dist = Math.hypot(tip.x - thumb.x, tip.y - thumb.y);
+                        state.grabbing = dist < 0.06;
+                        state.lastX = hx; state.lastY = hy;
 
-                    if (this.mode === 'particles') this.updateParticles(hx, hy);
-                    else if (this.mode === 'draw') this.addToDrawing(hx, hy);
-                    else if (this.mode === '3d') this.update3D(landmarks, this.grabbing);
+                        if (this.mode === 'particles') this.updateParticles(hx, hy);
+                        else if (this.mode === 'draw') this.addToDrawing(hx, hy);
+                        else if (this.mode === '3d') this.update3D(landmarks, state);
+                    });
                 } else {
-                    this.grabbing = false;
-                    this.grabbedObj = null;
+                    this.handStates.forEach(s => { s.grabbing = false; s.grabbedObj = null; });
                     if (this.mode === 'particles') this.updateParticles(-1000, -1000);
-                    this.lastPoint = null;
                 }
                 
                 if (this.mode === 'particles') this.renderParticles();
                 if (this.mode === 'draw') this.renderDrawing();
-                
-                // Render Three.js
-                if (this.renderer) this.renderer.render(this.scene, this.threeCamera);
             },
 
-            drawSkeleton(landmarks) {
-                this.ctx.strokeStyle = '#00f2ff';
-                this.ctx.lineWidth = 3;
-                this.ctx.lineCap = 'round';
+            drawSkeleton(landmarks, handIdx) {
+                const colors = ['#00f2ff', '#ff00ff'];
+                this.ctx.strokeStyle = colors[handIdx] || '#fff';
+                this.ctx.lineWidth = 4;
                 
-                // Connections
                 const connections = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
                 connections.forEach(([i, j]) => {
                     this.ctx.beginPath();
@@ -1625,50 +1642,52 @@
                     this.ctx.stroke();
                 });
                 
-                // Points
                 landmarks.forEach(p => {
                     this.ctx.beginPath();
-                    this.ctx.arc(p.x * this.canvas.width, p.y * this.canvas.height, 4, 0, Math.PI*2);
+                    this.ctx.arc(p.x * this.canvas.width, p.y * this.canvas.height, 5, 0, Math.PI*2);
                     this.ctx.fillStyle = '#fff';
                     this.ctx.fill();
                 });
             },
 
-            update3D(landmarks, isGrabbing) {
-                const index = landmarks[8];
-                // Convert MediaPipe (0-1) to Three.js (-5 to 5 approx)
-                const tx = (index.x - 0.5) * 10;
-                const ty = (index.y - 0.5) * -10;
+            update3D(landmarks, state) {
+                const tip = landmarks[8];
+                const tx = (tip.x - 0.5) * 12;
+                const ty = (tip.y - 0.5) * -10;
                 
-                if (isGrabbing) {
-                    if (!this.grabbedObj) {
+                if (state.grabbing) {
+                    if (!state.grabbedObj) {
                         this.objects.forEach(obj => {
-                            if (Math.hypot(obj.position.x - tx, obj.position.y - ty) < 1.5) {
-                                this.grabbedObj = obj;
-                            }
+                            const d = Math.hypot(obj.position.x - tx, obj.position.y - ty);
+                            if (d < 1.5) state.grabbedObj = obj;
                         });
                     }
-                    if (this.grabbedObj) {
-                        this.grabbedObj.position.x = tx;
-                        this.grabbedObj.position.y = ty;
-                        this.grabbedObj.rotation.x += 0.05;
-                        this.grabbedObj.rotation.y += 0.05;
+                    if (state.grabbedObj) {
+                        state.grabbedObj.position.x = tx;
+                        state.grabbedObj.position.y = ty;
+                        state.grabbedObj.rotation.x += 0.05;
                     }
                 } else {
-                    this.grabbedObj = null;
+                    state.grabbedObj = null;
                 }
-                
-                // Gentle floating for all objects
-                this.objects.forEach((obj, i) => {
-                    if (obj !== this.grabbedObj) {
-                        obj.position.y += Math.sin(Date.now() * 0.001 + i) * 0.01;
-                        obj.rotation.y += 0.01;
-                    }
-                });
+            },
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                if (this.renderer) {
+                    this.objects.forEach((obj, i) => {
+                        if (!this.handStates.some(s => s.grabbedObj === obj)) {
+                            obj.position.y += Math.sin(Date.now() * 0.001 + i) * 0.005;
+                            obj.rotation.y += 0.01;
+                        }
+                    });
+                    this.renderer.render(this.scene, this.threeCamera);
+                }
             },
 
             initParticles() {
-                for (let i = 0; i < 200; i++) {
+                this.particles = [];
+                for (let i = 0; i < 300; i++) {
                     this.particles.push({
                         x: Math.random() * this.canvas.width,
                         y: Math.random() * this.canvas.height,
@@ -1682,8 +1701,8 @@
                 this.particles.forEach(p => {
                     const dx = hx - p.x; const dy = hy - p.y;
                     const dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 300) {
-                        const force = (300 - dist) / 1000;
+                    if (dist < 200) {
+                        const force = (200 - dist) / 500;
                         p.vx += dx * force; p.vy += dy * force;
                     }
                     p.vx *= 0.95; p.vy *= 0.95; p.x += p.vx; p.y += p.vy;
@@ -1709,7 +1728,7 @@
             },
 
             renderDrawing() {
-                this.ctx.lineWidth = 5; this.ctx.lineCap = 'round';
+                this.ctx.lineWidth = 6; this.ctx.lineCap = 'round';
                 this.drawing.forEach(d => {
                     this.ctx.beginPath(); this.ctx.strokeStyle = d.color;
                     this.ctx.moveTo(d.x1, d.y1); this.ctx.lineTo(d.x2, d.y2);
@@ -1728,14 +1747,13 @@
             },
 
             setMode(mode) { 
-                this.mode = mode; this.lastPoint = null; 
-                if (mode !== '3d' && this.scene) {
-                    this.objects.forEach(obj => obj.visible = false);
-                } else if (this.scene) {
-                    this.objects.forEach(obj => obj.visible = true);
+                this.mode = mode; 
+                document.getElementById('kinesis-selector').style.display = mode === '3d' ? 'flex' : 'none';
+                if (this.scene) {
+                    this.objects.forEach(obj => obj.visible = (mode === '3d'));
                 }
             },
-            clear() { this.drawing = []; this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height); },
+            clear() { this.drawing = []; this.objects.forEach(obj => this.scene.remove(obj)); this.objects = []; },
             stop() { if (this.camera) this.camera.stop(); }
         };
 
