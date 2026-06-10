@@ -1652,7 +1652,8 @@
 
             update3D(landmarks, state) {
                 const tip = landmarks[8];
-                const tx = (tip.x - 0.5) * 12;
+                // Fix: Flip x to match mirrored display
+                const tx = (0.5 - tip.x) * 12; 
                 const ty = (tip.y - 0.5) * -10;
                 
                 if (state.grabbing) {
@@ -1663,13 +1664,26 @@
                         });
                     }
                     if (state.grabbedObj) {
-                        state.grabbedObj.position.x = tx;
-                        state.grabbedObj.position.y = ty;
+                        // Check if other hand is holding the same object
+                        const otherHand = this.handStates.find(s => s !== state);
+                        if (otherHand.grabbedObj === state.grabbedObj) {
+                            // If both hands hold it, keep it central or stable
+                            const otx = (0.5 - otherHand.lastTipX) * 12;
+                            const oty = (otherHand.lastTipY - 0.5) * -10;
+                            state.grabbedObj.position.x = (tx + otx) / 2;
+                            state.grabbedObj.position.y = (ty + oty) / 2;
+                        } else {
+                            state.grabbedObj.position.x = tx;
+                            state.grabbedObj.position.y = ty;
+                        }
                         state.grabbedObj.rotation.x += 0.05;
                     }
                 } else {
                     state.grabbedObj = null;
                 }
+                // Save for dual-hand logic
+                state.lastTipX = tip.x;
+                state.lastTipY = tip.y;
             },
 
             animate() {
